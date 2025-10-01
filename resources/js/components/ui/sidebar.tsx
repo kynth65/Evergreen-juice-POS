@@ -67,10 +67,27 @@ function SidebarProvider({
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
 
+  // Read the cookie value on mount
+  const getCookieValue = () => {
+    if (typeof document === 'undefined') return defaultOpen
+    const cookies = document.cookie.split('; ')
+    const cookie = cookies.find(c => c.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+    if (!cookie) return defaultOpen
+    return cookie.split('=')[1] === 'true'
+  }
+
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(defaultOpen)
+  const [_open, _setOpen] = React.useState(getCookieValue)
   const open = openProp ?? _open
+
+  // Sync internal state with defaultOpen prop when it changes
+  React.useEffect(() => {
+    if (openProp === undefined) {
+      _setOpen(getCookieValue())
+    }
+  }, [defaultOpen, openProp])
+
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value

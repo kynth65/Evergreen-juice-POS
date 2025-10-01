@@ -19,21 +19,33 @@ interface LoginProps {
 export default function Login({ status, canResetPassword }: LoginProps) {
     return (
         <AuthLayout
-            title="Log in to your account"
-            description="Enter your email and password below to log in"
+            title="Welcome back"
+            description="Log in to your account to continue"
         >
             <Head title="Log in" />
+
+            {status && (
+                <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-3 text-center text-sm text-green-800">
+                    {status}
+                </div>
+            )}
 
             <Form
                 {...AuthenticatedSessionController.store.form()}
                 resetOnSuccess={['password']}
-                className="flex flex-col gap-6"
+                className="space-y-6"
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                        <div className="space-y-4">
+                            {/* Email Field */}
+                            <div className="space-y-2">
+                                <Label
+                                    htmlFor="email"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Email address
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -42,18 +54,25 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="email@example.com"
+                                    placeholder="Enter your email"
+                                    className="h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                            {/* Password Field */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label
+                                        htmlFor="password"
+                                        className="text-sm font-medium text-gray-700"
+                                    >
+                                        Password
+                                    </Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ml-auto text-sm"
+                                            className="text-sm font-medium text-green-700 hover:text-green-800"
                                             tabIndex={5}
                                         >
                                             Forgot password?
@@ -67,49 +86,59 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder="Enter your password"
+                                    className="h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex items-center space-x-3">
+                            {/* Remember Me */}
+                            <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
+                                    className="border-gray-300 data-[state=checked]:bg-green-700 data-[state=checked]:border-green-700"
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label
+                                    htmlFor="remember"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Remember me for 30 days
+                                </Label>
                             </div>
-
-                            <Button
-                                type="submit"
-                                className="mt-4 w-full"
-                                tabIndex={4}
-                                disabled={processing}
-                                data-test="login-button"
-                            >
-                                {processing && (
-                                    <LoaderCircle className="h-4 w-4 animate-spin" />
-                                )}
-                                Log in
-                            </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                Sign up
+                        {/* Submit Button */}
+                        <Button
+                            type="submit"
+                            className="h-11 w-full bg-green-700 text-base font-medium hover:bg-green-800"
+                            tabIndex={4}
+                            disabled={processing}
+                            data-test="login-button"
+                        >
+                            {processing && (
+                                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            {processing ? 'Signing in...' : 'Sign in'}
+                        </Button>
+
+                        {/* Sign Up Link */}
+                        <div className="text-center">
+                            <span className="text-sm text-gray-600">
+                                Don't have an account?{' '}
+                            </span>
+                            <TextLink
+                                href={register()}
+                                tabIndex={6}
+                                className="text-sm font-medium text-green-700 hover:text-green-800"
+                            >
+                                Create account
                             </TextLink>
                         </div>
                     </>
                 )}
             </Form>
-
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
         </AuthLayout>
     );
 }

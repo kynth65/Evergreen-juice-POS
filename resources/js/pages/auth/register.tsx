@@ -13,21 +13,27 @@ import AuthLayout from '@/layouts/auth-layout';
 export default function Register() {
     return (
         <AuthLayout
-            title="Create an account"
-            description="Enter your details below to create your account"
+            title="Create your account"
+            description="Get started with EvergreenJuice today"
         >
             <Head title="Register" />
             <Form
                 {...RegisteredUserController.store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
-                className="flex flex-col gap-6"
+                className="space-y-6"
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                        <div className="space-y-4">
+                            {/* Name Field */}
+                            <div className="space-y-2">
+                                <Label
+                                    htmlFor="name"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Full name
+                                </Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -36,16 +42,20 @@ export default function Register() {
                                     tabIndex={1}
                                     autoComplete="name"
                                     name="name"
-                                    placeholder="Full name"
+                                    placeholder="Enter your full name"
+                                    className="h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                                 />
-                                <InputError
-                                    message={errors.name}
-                                    className="mt-2"
-                                />
+                                <InputError message={errors.name} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                            {/* Email Field */}
+                            <div className="space-y-2">
+                                <Label
+                                    htmlFor="email"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Email address
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -53,13 +63,20 @@ export default function Register() {
                                     tabIndex={2}
                                     autoComplete="email"
                                     name="email"
-                                    placeholder="email@example.com"
+                                    placeholder="Enter your email"
+                                    className="h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
+                            {/* Password Field */}
+                            <div className="space-y-2">
+                                <Label
+                                    htmlFor="password"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Password
+                                </Label>
                                 <Input
                                     id="password"
                                     type="password"
@@ -67,13 +84,18 @@ export default function Register() {
                                     tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
-                                    placeholder="Password"
+                                    placeholder="Create a password"
+                                    className="h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation">
+                            {/* Confirm Password Field */}
+                            <div className="space-y-2">
+                                <Label
+                                    htmlFor="password_confirmation"
+                                    className="text-sm font-medium text-gray-700"
+                                >
                                     Confirm password
                                 </Label>
                                 <Input
@@ -83,30 +105,39 @@ export default function Register() {
                                     tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
-                                    placeholder="Confirm password"
+                                    placeholder="Confirm your password"
+                                    className="h-11 border-gray-300 focus:border-green-500 focus:ring-green-500"
                                 />
                                 <InputError
                                     message={errors.password_confirmation}
                                 />
                             </div>
-
-                            <Button
-                                type="submit"
-                                className="mt-2 w-full"
-                                tabIndex={5}
-                                data-test="register-user-button"
-                            >
-                                {processing && (
-                                    <LoaderCircle className="h-4 w-4 animate-spin" />
-                                )}
-                                Create account
-                            </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
-                                Log in
+                        {/* Submit Button */}
+                        <Button
+                            type="submit"
+                            className="h-11 w-full bg-green-700 text-base font-medium hover:bg-green-800"
+                            tabIndex={5}
+                            data-test="register-user-button"
+                        >
+                            {processing && (
+                                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            {processing ? 'Creating account...' : 'Create account'}
+                        </Button>
+
+                        {/* Login Link */}
+                        <div className="text-center">
+                            <span className="text-sm text-gray-600">
+                                Already have an account?{' '}
+                            </span>
+                            <TextLink
+                                href={login()}
+                                tabIndex={6}
+                                className="text-sm font-medium text-green-700 hover:text-green-800"
+                            >
+                                Sign in
                             </TextLink>
                         </div>
                     </>
