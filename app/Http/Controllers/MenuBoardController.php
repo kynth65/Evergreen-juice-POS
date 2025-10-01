@@ -12,7 +12,11 @@ class MenuBoardController extends Controller
     {
         $categories = Category::active()
             ->with(['products' => function ($query) {
-                $query->active()->orderBy('name');
+                $query->active()
+                    ->with(['sizes' => function ($query) {
+                        $query->orderBy('sort_order');
+                    }])
+                    ->orderBy('name');
             }])
             ->orderBy('name')
             ->get()
