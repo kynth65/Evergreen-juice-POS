@@ -10,7 +10,6 @@ import {
     DoughnutChart,
     DataTable,
     DateRangeFilter,
-    type Column,
     type ChartData,
 } from '@/components/analytics';
 import { Button } from '@/components/ui/button';

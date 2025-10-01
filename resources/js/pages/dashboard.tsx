@@ -8,10 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '@/components/ui/date-picker';
 import { DataTable } from '@/components/analytics';
 import { useState } from 'react';
-import {
-    AlertTriangleIcon,
-    PlusIcon
-} from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 
 interface Stats {
     todaySales: number;
@@ -90,7 +87,7 @@ const formatCurrency = (amount: number) => {
     }).format(amount);
 };
 
-export default function Dashboard({ stats, recentOrders, lowStockProducts, topProducts, user }: Props) {
+export default function Dashboard({ stats, recentOrders, topProducts, user }: Props) {
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [customSales, setCustomSales] = useState<{ date: string; sales: number; orders: number } | null>(null);
     const [loading, setLoading] = useState(false);

@@ -169,7 +169,7 @@ export default function OrderHistory({
 
     const applyFilters = () => {
         const params = Object.fromEntries(
-            Object.entries(localFilters).filter(([_, value]) => value !== '' && value !== 'all')
+            Object.entries(localFilters).filter(([, value]) => value !== '' && value !== 'all')
         );
         router.get('/history', params, { preserveState: true });
     };

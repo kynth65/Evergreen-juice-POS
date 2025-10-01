@@ -78,13 +78,11 @@ function CartContent({
     cart,
     updateQuantity,
     removeFromCart,
-    getSubtotal,
     getTotal,
 }: {
     cart: CartItem[];
     updateQuantity: (index: number, quantity: number) => void;
     removeFromCart: (index: number) => void;
-    getSubtotal: () => number;
     getTotal: () => number;
 }) {
     return (
@@ -752,7 +750,6 @@ export default function PosIndex({ categories, products }: Props) {
                                     cart={cart}
                                     updateQuantity={updateQuantity}
                                     removeFromCart={removeFromCart}
-                                    getSubtotal={getSubtotal}
                                     getTotal={getTotal}
                                 />
                             </ScrollArea>

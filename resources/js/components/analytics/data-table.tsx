@@ -1,12 +1,12 @@
 import { type ReactNode } from 'react';
 
-export interface Column<T = any> {
+export interface Column<T = Record<string, unknown>> {
     header: string;
     accessor: keyof T | ((row: T) => ReactNode);
     className?: string;
 }
 
-export interface DataTableProps<T = any> {
+export interface DataTableProps<T = Record<string, unknown>> {
     title: string;
     description?: string;
     columns: Column<T>[];
@@ -14,7 +14,7 @@ export interface DataTableProps<T = any> {
     maxHeight?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
     title,
     description,
     columns,

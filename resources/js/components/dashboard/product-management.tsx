@@ -216,7 +216,7 @@ export function ProductManagement({ products, categories }: Props) {
         setFormData({ ...formData, sizes: updatedSizes });
     };
 
-    const updateSize = (index: number, field: keyof ProductSize, value: any) => {
+    const updateSize = (index: number, field: keyof ProductSize, value: string | number | boolean) => {
         const updatedSizes = [...formData.sizes];
         updatedSizes[index] = { ...updatedSizes[index], [field]: value };
         setFormData({ ...formData, sizes: updatedSizes });
