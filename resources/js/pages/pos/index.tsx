@@ -916,44 +916,44 @@ export default function PosIndex({ categories, products }: Props) {
 
                 {/* Order Review Modal - Modern Design */}
                 {showOrderReview && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 backdrop-blur-sm sm:p-4">
-                        <Card className="flex h-[calc(100vh-16px)] max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden shadow-2xl sm:h-auto">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                        <Card className="flex h-[95vh] w-full max-w-2xl flex-col overflow-hidden shadow-2xl">
                             {/* Fixed Header */}
-                            <CardHeader className="flex-shrink-0 border-b bg-gradient-to-r from-gray-50 to-gray-100 px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
-                                <CardTitle className="text-xl font-bold sm:text-2xl">
+                            <CardHeader className="flex-shrink-0 border-b bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4">
+                                <CardTitle className="text-lg font-bold">
                                     Order Review
                                 </CardTitle>
-                                <p className="text-xs text-gray-600 sm:text-sm">
+                                <p className="text-sm text-gray-600">
                                     Please review your order before completion
                                 </p>
                             </CardHeader>
 
                             {/* Scrollable Content */}
                             <ScrollArea className="min-h-0 flex-1">
-                                <CardContent className="space-y-4 p-4 sm:space-y-6 sm:p-6">
+                                <CardContent className="space-y-4 p-6">
                                     {/* Order Items */}
                                     <div>
-                                        <h3 className="mb-2 text-sm font-semibold sm:mb-3 sm:text-base">
+                                        <h3 className="mb-3 text-sm font-semibold">
                                             Items ({cart.length})
                                         </h3>
-                                        <div className="space-y-2">
+                                        <div className="max-h-[40vh] space-y-2 overflow-y-auto pr-2">
                                             {cart.map((item, index) => {
                                                 const itemPrice = item.selectedSize ? item.selectedSize.price : item.product.price;
                                                 return (
                                                 <div
                                                     key={`${item.product.id}-${item.selectedSize?.id || 'no-size'}-${index}`}
-                                                    className="flex items-center justify-between rounded-lg border-2 bg-gray-50 p-2.5 transition-colors hover:bg-gray-100 sm:p-3"
+                                                    className="flex items-center justify-between rounded-lg border bg-gray-50 p-3 transition-colors hover:bg-gray-100"
                                                 >
-                                                    <div className="min-w-0 flex-1 pr-2 sm:pr-3">
-                                                        <p className="truncate text-sm font-medium sm:text-base">
+                                                    <div className="min-w-0 flex-1 pr-3">
+                                                        <p className="truncate text-sm font-medium">
                                                             {item.product.name}
                                                             {item.selectedSize && (
-                                                                <span className="ml-1 text-xs font-normal text-gray-500">
+                                                                <span className="ml-1 text-sm font-normal text-gray-500">
                                                                     ({item.selectedSize.name})
                                                                 </span>
                                                             )}
                                                         </p>
-                                                        <p className="text-xs text-gray-600 sm:text-sm">
+                                                        <p className="text-sm text-gray-600">
                                                             ₱
                                                             {Number(
                                                                 itemPrice,
@@ -962,7 +962,7 @@ export default function PosIndex({ categories, products }: Props) {
                                                         </p>
                                                     </div>
                                                     <div className="flex-shrink-0 text-right">
-                                                        <p className="text-sm font-semibold sm:text-base">
+                                                        <p className="text-sm font-semibold">
                                                             ₱
                                                             {(
                                                                 Number(
@@ -980,13 +980,13 @@ export default function PosIndex({ categories, products }: Props) {
 
                                     {/* Order Summary */}
                                     <div>
-                                        <h3 className="mb-2 text-sm font-semibold sm:mb-3 sm:text-base">
+                                        <h3 className="mb-3 text-sm font-semibold">
                                             Order Summary
                                         </h3>
-                                        <div className="rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 p-3 sm:p-4">
+                                        <div className="rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 p-4">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-base font-bold text-gray-900 sm:text-lg">Total:</span>
-                                                <span className="text-xl font-bold text-green-600 sm:text-2xl">
+                                                <span className="text-base font-bold text-gray-900">Total:</span>
+                                                <span className="text-2xl font-bold text-green-600">
                                                     ₱{getTotal().toFixed(2)}
                                                 </span>
                                             </div>
@@ -997,11 +997,11 @@ export default function PosIndex({ categories, products }: Props) {
 
                                     {/* Payment Information */}
                                     <div>
-                                        <h3 className="mb-2 text-sm font-semibold sm:mb-3 sm:text-base">
+                                        <h3 className="mb-3 text-sm font-semibold">
                                             Payment Details
                                         </h3>
-                                        <div className="space-y-2 rounded-lg border-2 bg-gray-50 p-3 sm:p-4">
-                                            <div className="flex justify-between text-xs sm:text-sm">
+                                        <div className="space-y-3 rounded-lg border bg-gray-50 p-4">
+                                            <div className="flex justify-between text-sm">
                                                 <span className="font-medium text-gray-700">Payment Method:</span>
                                                 <span className="font-semibold capitalize">
                                                     {paymentMethod.replace(
@@ -1014,7 +1014,7 @@ export default function PosIndex({ categories, products }: Props) {
                                                 cashAmount && (
                                                     <>
                                                         <Separator />
-                                                        <div className="flex justify-between text-xs sm:text-sm">
+                                                        <div className="flex justify-between text-sm">
                                                             <span className="font-medium text-gray-700">
                                                                 Cash Amount:
                                                             </span>
@@ -1025,9 +1025,9 @@ export default function PosIndex({ categories, products }: Props) {
                                                                 ).toFixed(2)}
                                                             </span>
                                                         </div>
-                                                        <div className="flex justify-between rounded-md bg-green-100 px-2 py-1.5 sm:px-3 sm:py-2">
-                                                            <span className="text-sm font-semibold text-green-800 sm:text-base">Change:</span>
-                                                            <span className="text-base font-bold text-green-700 sm:text-lg">
+                                                        <div className="flex justify-between rounded-md bg-green-100 px-3 py-2">
+                                                            <span className="text-sm font-semibold text-green-800">Change:</span>
+                                                            <span className="text-lg font-bold text-green-700">
                                                                 ₱
                                                                 {getChange().toFixed(
                                                                     2,
@@ -1040,7 +1040,7 @@ export default function PosIndex({ categories, products }: Props) {
                                                 paymentReference && (
                                                     <>
                                                         <Separator />
-                                                        <div className="flex justify-between gap-2 text-xs sm:text-sm">
+                                                        <div className="flex justify-between gap-2 text-sm">
                                                             <span className="font-medium text-gray-700">Reference:</span>
                                                             <span className="truncate font-mono font-semibold">
                                                                 {paymentReference}
@@ -1051,7 +1051,7 @@ export default function PosIndex({ categories, products }: Props) {
                                             {notes && (
                                                 <>
                                                     <Separator />
-                                                    <div className="text-xs sm:text-sm">
+                                                    <div className="text-sm">
                                                         <span className="block font-medium text-gray-700">
                                                             Notes:
                                                         </span>
@@ -1067,17 +1067,17 @@ export default function PosIndex({ categories, products }: Props) {
                             </ScrollArea>
 
                             {/* Fixed Footer with Action Buttons */}
-                            <div className="flex-shrink-0 border-t bg-white p-4 sm:p-6">
-                                <div className="flex gap-2 sm:gap-3">
+                            <div className="flex-shrink-0 border-t bg-white p-6">
+                                <div className="flex gap-3">
                                     <Button
                                         variant="outline"
-                                        className="h-11 flex-1 text-sm font-semibold sm:h-12 sm:text-base"
+                                        className="h-12 flex-1 text-sm font-semibold"
                                         onClick={handleBackToEdit}
                                     >
                                         Back to Edit
                                     </Button>
                                     <Button
-                                        className="h-11 flex-1 text-sm font-semibold sm:h-12 sm:text-base"
+                                        className="h-12 flex-1 text-sm font-semibold"
                                         onClick={handleCheckout}
                                     >
                                         Complete Order
