@@ -68,9 +68,39 @@ const defaultChartOptions: ChartOptions<'line' | 'bar'> = {
     plugins: {
         legend: {
             position: 'top' as const,
+            labels: {
+                font: {
+                    size: 11,
+                },
+                padding: 10,
+            },
         },
         title: {
             display: false,
+        },
+        tooltip: {
+            bodyFont: {
+                size: 11,
+            },
+            titleFont: {
+                size: 12,
+            },
+        },
+    },
+    scales: {
+        x: {
+            ticks: {
+                font: {
+                    size: 10,
+                },
+            },
+        },
+        y: {
+            ticks: {
+                font: {
+                    size: 10,
+                },
+            },
         },
     },
 };
@@ -81,9 +111,23 @@ const defaultDoughnutOptions: ChartOptions<'doughnut'> = {
     plugins: {
         legend: {
             position: 'top' as const,
+            labels: {
+                font: {
+                    size: 11,
+                },
+                padding: 10,
+            },
         },
         title: {
             display: false,
+        },
+        tooltip: {
+            bodyFont: {
+                size: 11,
+            },
+            titleFont: {
+                size: 12,
+            },
         },
     },
 };
@@ -91,7 +135,7 @@ const defaultDoughnutOptions: ChartOptions<'doughnut'> = {
 export function LineChart({
     data,
     options = defaultChartOptions,
-    height = 'h-64 sm:h-80',
+    height = 'h-48 sm:h-64 md:h-72 lg:h-80',
 }: LineChartProps) {
     return (
         <div className={height}>
@@ -103,7 +147,7 @@ export function LineChart({
 export function BarChart({
     data,
     options = defaultChartOptions,
-    height = 'h-64 sm:h-80',
+    height = 'h-48 sm:h-64 md:h-72 lg:h-80',
 }: BarChartProps) {
     return (
         <div className={height}>
@@ -115,10 +159,10 @@ export function BarChart({
 export function DoughnutChart({
     data,
     options = defaultDoughnutOptions,
-    size = 'w-48 h-48 sm:w-64 sm:h-64',
+    size = 'w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-64 lg:h-64',
 }: DoughnutChartProps) {
     return (
-        <div className="flex justify-center items-center h-64 sm:h-80">
+        <div className="flex justify-center items-center h-48 sm:h-64 md:h-72 lg:h-80">
             <div className={size}>
                 <ChartJSDoughnut data={data} options={options} />
             </div>

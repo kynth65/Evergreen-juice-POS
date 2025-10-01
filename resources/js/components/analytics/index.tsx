@@ -11,3 +11,4 @@ export {
     type ChartDataset,
 } from './charts';
 export { DataTable, type DataTableProps, type Column } from './data-table';
+export { DateRangeFilter } from './date-range-filter';

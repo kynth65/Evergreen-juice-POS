@@ -15,7 +15,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::with('category')
+        $products = Product::with(['category', 'sizes'])
             ->orderBy('name')
             ->get()
             ->map(function ($product) {
@@ -35,6 +35,15 @@ class ProductController extends Controller
                         'name' => $product->category->name,
                         'color' => $product->category->color,
                     ],
+                    'sizes' => $product->sizes->map(function ($size) {
+                        return [
+                            'id' => $size->id,
+                            'name' => $size->name,
+                            'price' => $size->price,
+                            'is_default' => $size->is_default,
+                            'sort_order' => $size->sort_order,
+                        ];
+                    }),
                     'is_low_stock' => $product->isLowStock(),
                     'is_out_of_stock' => $product->isOutOfStock(),
                 ];
@@ -66,9 +75,25 @@ class ProductController extends Controller
             'image_url' => 'nullable|url',
             'is_active' => 'boolean',
             'track_inventory' => 'boolean',
+            'sizes' => 'nullable|array',
+            'sizes.*.name' => 'required|string|max:255',
+            'sizes.*.price' => 'required|numeric|min:0',
+            'sizes.*.is_default' => 'boolean',
         ]);
 
-        Product::create($validated);
+        $product = Product::create($validated);
+
+        // Create sizes if provided
+        if (isset($validated['sizes']) && is_array($validated['sizes'])) {
+            foreach ($validated['sizes'] as $index => $sizeData) {
+                $product->sizes()->create([
+                    'name' => $sizeData['name'],
+                    'price' => $sizeData['price'],
+                    'is_default' => $sizeData['is_default'] ?? false,
+                    'sort_order' => $index,
+                ]);
+            }
+        }
 
         return redirect()->route('products.index')
             ->with('success', 'Product created successfully.');
@@ -90,9 +115,62 @@ class ProductController extends Controller
             'image_url' => 'nullable|url',
             'is_active' => 'boolean',
             'track_inventory' => 'boolean',
+            'sizes' => 'nullable|array',
+            'sizes.*.id' => 'nullable|exists:product_sizes,id',
+            'sizes.*.name' => 'required|string|max:255',
+            'sizes.*.price' => 'required|numeric|min:0',
+            'sizes.*.is_default' => 'boolean',
         ]);
 
+        // Validate that all submitted size IDs belong to this product (IDOR protection)
+        if (isset($validated['sizes']) && is_array($validated['sizes'])) {
+            $submittedSizeIds = collect($validated['sizes'])->pluck('id')->filter();
+            if ($submittedSizeIds->isNotEmpty()) {
+                $validSizeIds = $product->sizes()->whereIn('id', $submittedSizeIds)->pluck('id');
+                $invalidSizeIds = $submittedSizeIds->diff($validSizeIds);
+
+                if ($invalidSizeIds->isNotEmpty()) {
+                    abort(403, 'You can only update sizes that belong to this product.');
+                }
+            }
+        }
+
         $product->update($validated);
+
+        // Update sizes
+        if (isset($validated['sizes']) && is_array($validated['sizes'])) {
+            $submittedSizeIds = collect($validated['sizes'])->pluck('id')->filter();
+
+            // Delete sizes that are no longer present
+            $product->sizes()->whereNotIn('id', $submittedSizeIds)->delete();
+
+            // Create or update sizes
+            foreach ($validated['sizes'] as $index => $sizeData) {
+                if (isset($sizeData['id'])) {
+                    // Update existing size - find the actual model to use update() safely
+                    $size = $product->sizes()->find($sizeData['id']);
+                    if ($size) {
+                        $size->update([
+                            'name' => $sizeData['name'],
+                            'price' => $sizeData['price'],
+                            'is_default' => $sizeData['is_default'] ?? false,
+                            'sort_order' => $index,
+                        ]);
+                    }
+                } else {
+                    // Create new size
+                    $product->sizes()->create([
+                        'name' => $sizeData['name'],
+                        'price' => $sizeData['price'],
+                        'is_default' => $sizeData['is_default'] ?? false,
+                        'sort_order' => $index,
+                    ]);
+                }
+            }
+        } else {
+            // If no sizes provided, delete all sizes
+            $product->sizes()->delete();
+        }
 
         return redirect()->route('products.index')
             ->with('success', 'Product updated successfully.');

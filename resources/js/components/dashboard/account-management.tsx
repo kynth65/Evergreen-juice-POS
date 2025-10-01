@@ -1,6 +1,7 @@
 import { router, useForm } from '@inertiajs/react';
 import { Edit, Trash2, UserPlus, Users } from 'lucide-react';
 import { useState } from 'react';
+import type { User } from '../../types';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -39,14 +40,6 @@ import {
     TableHeader,
     TableRow,
 } from '../ui/table';
-
-interface User {
-    id: number;
-    name: string;
-    email?: string;
-    is_active?: boolean;
-    created_at?: string;
-}
 
 interface Props {
     users: User[];

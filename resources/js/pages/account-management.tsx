@@ -1,17 +1,8 @@
 import AppLayout from '@/layouts/app-layout';
 import { AccountManagement } from '@/components/dashboard/account-management';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type User } from '@/types';
 import { Head } from '@inertiajs/react';
 import { dashboard } from '@/routes';
-
-interface User {
-    id: number;
-    name: string;
-    role: string;
-    email?: string;
-    is_active?: boolean;
-    created_at?: string;
-}
 
 interface Props {
     users: User[];

@@ -7,6 +7,7 @@ import { PrinterIcon, ArrowLeftIcon } from 'lucide-react';
 interface OrderItem {
     id: number;
     product_name: string;
+    size_name?: string;
     unit_price: number;
     quantity: number;
     line_total: number;
@@ -137,7 +138,14 @@ export default function Receipt({ order }: Props) {
                                     <div key={item.id} className="space-y-1">
                                         <div className="flex justify-between items-start">
                                             <div className="flex-1">
-                                                <p className="font-medium">{item.product_name}</p>
+                                                <p className="font-medium">
+                                                    {item.product_name}
+                                                    {item.size_name && (
+                                                        <span className="ml-1 text-sm font-normal text-gray-500">
+                                                            ({item.size_name})
+                                                        </span>
+                                                    )}
+                                                </p>
                                                 <p className="text-sm text-gray-600">
                                                     {item.quantity} × ₱{Number(item.unit_price).toFixed(2)}
                                                 </p>

@@ -15,12 +15,12 @@ class PosController extends Controller
     public function index()
     {
         $categories = Category::active()
-            ->with(['activeProducts'])
+            ->with(['activeProducts.sizes'])
             ->orderBy('name')
             ->get();
 
         $products = Product::active()
-            ->with('category')
+            ->with(['category', 'sizes'])
             ->orderBy('name')
             ->get();
 
@@ -35,6 +35,7 @@ class PosController extends Controller
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_size_id' => 'nullable|exists:product_sizes,id',
             'items.*.quantity' => 'required|integer|min:1',
             'payment_method' => 'required|in:cash,card,digital_wallet',
             'payment_reference' => 'nullable|required_unless:payment_method,cash|string',
@@ -64,15 +65,29 @@ class PosController extends Controller
                     throw new \Exception("Insufficient stock for {$product->name}");
                 }
 
-                $lineTotal = $product->price * $item['quantity'];
+                // Determine price and size info
+                $unitPrice = $product->price;
+                $sizeName = null;
+                $productSizeId = null;
+
+                if (isset($item['product_size_id'])) {
+                    $size = $product->sizes()->findOrFail($item['product_size_id']);
+                    $unitPrice = $size->price;
+                    $sizeName = $size->name;
+                    $productSizeId = $size->id;
+                }
+
+                $lineTotal = $unitPrice * $item['quantity'];
                 $subtotal += $lineTotal;
 
                 // Create order item
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
+                    'product_size_id' => $productSizeId,
                     'product_name' => $product->name,
-                    'unit_price' => $product->price,
+                    'size_name' => $sizeName,
+                    'unit_price' => $unitPrice,
                     'quantity' => $item['quantity'],
                     'line_total' => $lineTotal,
                 ]);

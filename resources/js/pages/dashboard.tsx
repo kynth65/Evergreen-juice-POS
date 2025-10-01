@@ -211,37 +211,44 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts, topPr
 
                 {/* Recent Activity */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Recent Orders</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-3 max-h-96 overflow-y-auto">
-                                {recentOrders.length === 0 ? (
-                                    <p className="text-gray-500 text-center py-8">No orders yet today</p>
-                                ) : (
-                                    recentOrders.map(order => (
-                                        <Link key={order.id} href={`/orders/${order.id}`}>
-                                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-                                                <div>
-                                                    <p className="font-medium text-sm">{order.order_number}</p>
-                                                    <p className="text-xs text-gray-600">
-                                                        {order.user?.name || 'Guest'} • {new Date(order.created_at).toLocaleTimeString()}
-                                                    </p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="font-semibold text-sm">₱{Number(order.total_amount).toFixed(2)}</p>
-                                                    <Badge variant={order.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
-                                                        {order.status}
-                                                    </Badge>
-                                                </div>
-                                            </div>
+                    <div className="lg:col-span-1">
+                        <DataTable
+                            title="Recent Orders"
+                            description={recentOrders.length === 0 ? "No orders yet today" : undefined}
+                            columns={[
+                                {
+                                    header: 'Order',
+                                    accessor: (row) => (
+                                        <Link href={`/orders/${row.id}`} className="text-blue-600 hover:underline">
+                                            {row.order_number}
                                         </Link>
-                                    ))
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    ),
+                                },
+                                {
+                                    header: 'Cashier',
+                                    accessor: (row) => row.user?.name || 'Guest',
+                                },
+                                {
+                                    header: 'Time',
+                                    accessor: (row) => new Date(row.created_at).toLocaleTimeString(),
+                                },
+                                {
+                                    header: 'Total',
+                                    accessor: (row) => formatCurrency(Number(row.total_amount)),
+                                },
+                                {
+                                    header: 'Status',
+                                    accessor: (row) => (
+                                        <Badge variant={row.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
+                                            {row.status}
+                                        </Badge>
+                                    ),
+                                },
+                            ]}
+                            data={recentOrders}
+                            maxHeight="max-h-80"
+                        />
+                    </div>
 
                     <div className="lg:col-span-1">
                         <DataTable

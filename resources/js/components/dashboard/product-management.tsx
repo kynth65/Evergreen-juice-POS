@@ -19,6 +19,14 @@ interface Category {
     color: string;
 }
 
+interface ProductSize {
+    id?: number;
+    name: string;
+    price: number;
+    is_default: boolean;
+    sort_order: number;
+}
+
 interface Product {
     id: number;
     name: string;
@@ -35,6 +43,7 @@ interface Product {
         name: string;
         color: string;
     };
+    sizes: ProductSize[];
     is_low_stock: boolean;
     is_out_of_stock: boolean;
 }
@@ -50,6 +59,7 @@ interface ProductFormData {
     image_url: string;
     is_active: boolean;
     track_inventory: boolean;
+    sizes: ProductSize[];
 }
 
 const initialFormData: ProductFormData = {
@@ -63,6 +73,7 @@ const initialFormData: ProductFormData = {
     image_url: '',
     is_active: true,
     track_inventory: true,
+    sizes: [],
 };
 
 interface Props {
@@ -88,12 +99,27 @@ export function ProductManagement({ products, categories }: Props) {
     const handleCreateProduct = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Validate required fields
+        if (!formData.name.trim()) {
+            alert('Product name is required');
+            return;
+        }
+        if (!formData.category_id) {
+            alert('Category is required');
+            return;
+        }
+        if (!formData.price || parseFloat(formData.price) <= 0) {
+            alert('Valid price is required');
+            return;
+        }
+
         router.post('/products', {
             ...formData,
             price: parseFloat(formData.price),
             stock_quantity: parseInt(formData.stock_quantity),
             low_stock_threshold: parseInt(formData.low_stock_threshold),
             category_id: parseInt(formData.category_id),
+            sizes: formData.sizes.length > 0 ? JSON.stringify(formData.sizes) : undefined,
         }, {
             onSuccess: () => {
                 setIsCreateModalOpen(false);
@@ -107,12 +133,27 @@ export function ProductManagement({ products, categories }: Props) {
 
         if (!editingProduct) return;
 
+        // Validate required fields
+        if (!formData.name.trim()) {
+            alert('Product name is required');
+            return;
+        }
+        if (!formData.category_id) {
+            alert('Category is required');
+            return;
+        }
+        if (!formData.price || parseFloat(formData.price) <= 0) {
+            alert('Valid price is required');
+            return;
+        }
+
         router.put(`/products/${editingProduct.id}`, {
             ...formData,
             price: parseFloat(formData.price),
             stock_quantity: parseInt(formData.stock_quantity),
             low_stock_threshold: parseInt(formData.low_stock_threshold),
             category_id: parseInt(formData.category_id),
+            sizes: formData.sizes.length > 0 ? JSON.stringify(formData.sizes) : undefined,
         }, {
             onSuccess: () => {
                 setIsEditModalOpen(false);
@@ -135,6 +176,7 @@ export function ProductManagement({ products, categories }: Props) {
             image_url: product.image_url || '',
             is_active: product.is_active,
             track_inventory: product.track_inventory,
+            sizes: product.sizes || [],
         });
         setIsEditModalOpen(true);
     };
@@ -159,26 +201,60 @@ export function ProductManagement({ products, categories }: Props) {
         return 'In Stock';
     };
 
+    const addSize = () => {
+        const newSize: ProductSize = {
+            name: '',
+            price: 0,
+            is_default: formData.sizes.length === 0,
+            sort_order: formData.sizes.length,
+        };
+        setFormData({ ...formData, sizes: [...formData.sizes, newSize] });
+    };
+
+    const removeSize = (index: number) => {
+        const updatedSizes = formData.sizes.filter((_, i) => i !== index);
+        setFormData({ ...formData, sizes: updatedSizes });
+    };
+
+    const updateSize = (index: number, field: keyof ProductSize, value: any) => {
+        const updatedSizes = [...formData.sizes];
+        updatedSizes[index] = { ...updatedSizes[index], [field]: value };
+        setFormData({ ...formData, sizes: updatedSizes });
+    };
+
+    const setDefaultSize = (index: number) => {
+        const updatedSizes = formData.sizes.map((size, i) => ({
+            ...size,
+            is_default: i === index,
+        }));
+        setFormData({ ...formData, sizes: updatedSizes });
+    };
+
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center">
 
-                <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
+                    setIsCreateModalOpen(open);
+                    if (open) {
+                        setFormData(initialFormData);
+                    }
+                }}>
                     <DialogTrigger asChild>
                         <Button>
                             <PlusIcon className="w-4 h-4 mr-2" />
                             Add Product
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
                         <DialogHeader>
                             <DialogTitle>Add New Product</DialogTitle>
                             <DialogDescription>
                                 Fill in the product details below.
                             </DialogDescription>
                         </DialogHeader>
-                        <form onSubmit={handleCreateProduct}>
-                            <div className="grid grid-cols-2 gap-4 py-4">
+                        <form onSubmit={handleCreateProduct} className="flex flex-col overflow-hidden">
+                            <div className="grid grid-cols-2 gap-4 py-4 overflow-y-auto pr-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="name">Product Name*</Label>
                                     <Input
@@ -220,11 +296,17 @@ export function ProductManagement({ products, categories }: Props) {
                                     <Label htmlFor="price">Price*</Label>
                                     <Input
                                         id="price"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
+                                        type="text"
+                                        inputMode="decimal"
+                                        placeholder="0.00"
                                         value={formData.price}
-                                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // Allow empty, digits, and one decimal point
+                                            if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                                                setFormData({ ...formData, price: value });
+                                            }
+                                        }}
                                         required
                                     />
                                 </div>
@@ -280,6 +362,70 @@ export function ProductManagement({ products, categories }: Props) {
                                         onCheckedChange={(checked: boolean) => setFormData({ ...formData, track_inventory: checked })}
                                     />
                                     <Label htmlFor="track_inventory">Track Inventory</Label>
+                                </div>
+                                <div className="col-span-2 space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <Label>Product Sizes (Optional)</Label>
+                                        <Button type="button" variant="outline" size="sm" onClick={addSize}>
+                                            <PlusIcon className="w-4 h-4 mr-1" />
+                                            Add Size
+                                        </Button>
+                                    </div>
+                                    {formData.sizes.length > 0 && (
+                                        <div className="space-y-2 border rounded-md p-3">
+                                            {formData.sizes.map((size, index) => (
+                                                <div key={index} className="flex gap-2 items-end">
+                                                    <div className="flex-1 space-y-1">
+                                                        <Label className="text-xs">Size Name</Label>
+                                                        <Input
+                                                            placeholder="e.g., Small, Medium"
+                                                            value={size.name}
+                                                            onChange={(e) => updateSize(index, 'name', e.target.value)}
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 space-y-1">
+                                                        <Label className="text-xs">Price</Label>
+                                                        <Input
+                                                            type="text"
+                                                            inputMode="decimal"
+                                                            placeholder="0.00"
+                                                            value={size.price}
+                                                            onChange={(e) => {
+                                                                const value = e.target.value;
+                                                                if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                                                                    updateSize(index, 'price', value === '' ? 0 : parseFloat(value) || 0);
+                                                                }
+                                                            }}
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button
+                                                            type="button"
+                                                            variant={size.is_default ? "default" : "outline"}
+                                                            size="sm"
+                                                            onClick={() => setDefaultSize(index)}
+                                                            title="Set as default"
+                                                        >
+                                                            Default
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            onClick={() => removeSize(index)}
+                                                        >
+                                                            <TrashIcon className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        Add different sizes with different prices. If no sizes are added, the base price will be used.
+                                    </p>
                                 </div>
                             </div>
                             <DialogFooter>
@@ -434,16 +580,22 @@ export function ProductManagement({ products, categories }: Props) {
             </Card>
 
             {/* Edit Product Modal */}
-            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogContent className="max-w-2xl">
+            <Dialog open={isEditModalOpen} onOpenChange={(open) => {
+                setIsEditModalOpen(open);
+                if (!open) {
+                    setFormData(initialFormData);
+                    setEditingProduct(null);
+                }
+            }}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
                     <DialogHeader>
                         <DialogTitle>Edit Product</DialogTitle>
                         <DialogDescription>
                             Update the product details below.
                         </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleEditProduct}>
-                        <div className="grid grid-cols-2 gap-4 py-4">
+                    <form onSubmit={handleEditProduct} className="flex flex-col overflow-hidden">
+                        <div className="grid grid-cols-2 gap-4 py-4 overflow-y-auto pr-2">
                             <div className="space-y-2">
                                 <Label htmlFor="edit-name">Product Name*</Label>
                                 <Input
@@ -485,11 +637,17 @@ export function ProductManagement({ products, categories }: Props) {
                                 <Label htmlFor="edit-price">Price*</Label>
                                 <Input
                                     id="edit-price"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
+                                    type="text"
+                                    inputMode="decimal"
+                                    placeholder="0.00"
                                     value={formData.price}
-                                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Allow empty, digits, and one decimal point
+                                        if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                                            setFormData({ ...formData, price: value });
+                                        }
+                                    }}
                                     required
                                 />
                             </div>
@@ -545,6 +703,70 @@ export function ProductManagement({ products, categories }: Props) {
                                     onCheckedChange={(checked: boolean) => setFormData({ ...formData, track_inventory: checked })}
                                 />
                                 <Label htmlFor="edit-track_inventory">Track Inventory</Label>
+                            </div>
+                            <div className="col-span-2 space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label>Product Sizes (Optional)</Label>
+                                    <Button type="button" variant="outline" size="sm" onClick={addSize}>
+                                        <PlusIcon className="w-4 h-4 mr-1" />
+                                        Add Size
+                                    </Button>
+                                </div>
+                                {formData.sizes.length > 0 && (
+                                    <div className="space-y-2 border rounded-md p-3">
+                                        {formData.sizes.map((size, index) => (
+                                            <div key={index} className="flex gap-2 items-end">
+                                                <div className="flex-1 space-y-1">
+                                                    <Label className="text-xs">Size Name</Label>
+                                                    <Input
+                                                        placeholder="e.g., Small, Medium"
+                                                        value={size.name}
+                                                        onChange={(e) => updateSize(index, 'name', e.target.value)}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className="flex-1 space-y-1">
+                                                    <Label className="text-xs">Price</Label>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        placeholder="0.00"
+                                                        value={size.price}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                                                                updateSize(index, 'price', value === '' ? 0 : parseFloat(value) || 0);
+                                                            }
+                                                        }}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        type="button"
+                                                        variant={size.is_default ? "default" : "outline"}
+                                                        size="sm"
+                                                        onClick={() => setDefaultSize(index)}
+                                                        title="Set as default"
+                                                    >
+                                                        Default
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        onClick={() => removeSize(index)}
+                                                    >
+                                                        <TrashIcon className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                <p className="text-xs text-muted-foreground">
+                                    Add different sizes with different prices. If no sizes are added, the base price will be used.
+                                </p>
                             </div>
                         </div>
                         <DialogFooter>

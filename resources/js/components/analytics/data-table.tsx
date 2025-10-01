@@ -29,21 +29,21 @@ export function DataTable<T extends Record<string, any>>({
     };
 
     return (
-        <div className="bg-white rounded-lg border">
-            <div className="p-4 sm:p-6 border-b">
-                <h3 className="text-base sm:text-lg font-semibold">{title}</h3>
+        <div className="bg-white rounded-lg border w-full">
+            <div className="p-3 sm:p-4 md:p-6 border-b">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold">{title}</h3>
                 {description && (
-                    <p className="text-sm text-gray-600 mt-1">{description}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">{description}</p>
                 )}
             </div>
             <div className={`overflow-x-auto ${maxHeight}`}>
-                <table className="w-full">
+                <table className="w-full min-w-full">
                     <thead className="bg-gray-50 sticky top-0">
                         <tr>
                             {columns.map((column, index) => (
                                 <th
                                     key={index}
-                                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider"
                                 >
                                     {column.header}
                                 </th>
@@ -52,11 +52,11 @@ export function DataTable<T extends Record<string, any>>({
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {data.map((row, rowIndex) => (
-                            <tr key={rowIndex}>
+                            <tr key={rowIndex} className="hover:bg-gray-50">
                                 {columns.map((column, colIndex) => (
                                     <td
                                         key={colIndex}
-                                        className={`px-4 sm:px-6 py-4 whitespace-nowrap text-sm ${
+                                        className={`px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${
                                             column.className ||
                                             (colIndex === 0
                                                 ? 'font-medium text-gray-900'

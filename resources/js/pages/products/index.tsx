@@ -231,11 +231,15 @@ export default function ProductsIndex({ products, categories }: Props) {
                                         <Label htmlFor="price">Price*</Label>
                                         <Input
                                             id="price"
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
+                                            type="text"
+                                            inputMode="decimal"
                                             value={formData.price}
-                                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                                                    setFormData({ ...formData, price: value });
+                                                }
+                                            }}
                                             required
                                         />
                                     </div>
@@ -494,11 +498,15 @@ export default function ProductsIndex({ products, categories }: Props) {
                                     <Label htmlFor="edit-price">Price*</Label>
                                     <Input
                                         id="edit-price"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
+                                        type="text"
+                                        inputMode="decimal"
                                         value={formData.price}
-                                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                                                setFormData({ ...formData, price: value });
+                                            }
+                                        }}
                                         required
                                     />
                                 </div>

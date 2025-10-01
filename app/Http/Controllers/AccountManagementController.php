@@ -51,6 +51,25 @@ class AccountManagementController extends Controller
             'role' => 'required|in:admin,cashier',
         ]);
 
+        // Prevent admin from deactivating themselves
+        if ($account_management->id === auth()->id() && ! $request->boolean('is_active')) {
+            return redirect()->route('account-management.index')
+                ->withErrors(['is_active' => 'You cannot deactivate your own account.']);
+        }
+
+        // Prevent deactivating the last admin
+        if ($account_management->isAdmin() && ! $request->boolean('is_active')) {
+            $activeAdminsCount = User::where('role', 'admin')
+                ->where('is_active', true)
+                ->where('id', '!=', $account_management->id)
+                ->count();
+
+            if ($activeAdminsCount === 0) {
+                return redirect()->route('account-management.index')
+                    ->withErrors(['is_active' => 'Cannot deactivate the last active admin account.']);
+            }
+        }
+
         $account_management->update([
             'name' => $request->name,
             'email' => $request->email,
@@ -64,6 +83,25 @@ class AccountManagementController extends Controller
 
     public function destroy(User $account_management)
     {
+        // Prevent admin from deleting themselves
+        if ($account_management->id === auth()->id()) {
+            return redirect()->route('account-management.index')
+                ->withErrors(['error' => 'You cannot delete your own account.']);
+        }
+
+        // Prevent deleting the last admin
+        if ($account_management->isAdmin()) {
+            $activeAdminsCount = User::where('role', 'admin')
+                ->where('is_active', true)
+                ->where('id', '!=', $account_management->id)
+                ->count();
+
+            if ($activeAdminsCount === 0) {
+                return redirect()->route('account-management.index')
+                    ->withErrors(['error' => 'Cannot delete the last admin account.']);
+            }
+        }
+
         $account_management->delete();
 
         return redirect()->route('account-management.index')

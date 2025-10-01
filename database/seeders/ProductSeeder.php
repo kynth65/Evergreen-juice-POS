@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductSize;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
@@ -146,8 +147,33 @@ class ProductSeeder extends Seeder
             ],
         ];
 
-        foreach ($products as $product) {
-            Product::create($product);
+        foreach ($products as $productData) {
+            $product = Product::create($productData);
+
+            // Add sizes for all products
+            ProductSize::create([
+                'product_id' => $product->id,
+                'name' => 'Small (12oz)',
+                'price' => $product->price,
+                'is_default' => false,
+                'sort_order' => 0,
+            ]);
+
+            ProductSize::create([
+                'product_id' => $product->id,
+                'name' => 'Medium (16oz)',
+                'price' => $product->price + 20,
+                'is_default' => true,
+                'sort_order' => 1,
+            ]);
+
+            ProductSize::create([
+                'product_id' => $product->id,
+                'name' => 'Large (20oz)',
+                'price' => $product->price + 40,
+                'is_default' => false,
+                'sort_order' => 2,
+            ]);
         }
     }
 }

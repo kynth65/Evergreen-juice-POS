@@ -18,7 +18,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // POS Routes
     Route::get('pos', [PosController::class, 'index'])->name('pos.index');
-    Route::post('pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
+    Route::post('pos/checkout', [PosController::class, 'checkout'])
+        ->middleware('throttle:30,1')
+        ->name('pos.checkout');
 
     // Admin only routes
     Route::middleware('role:admin')->group(function () {
@@ -41,7 +43,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Account Management (Admin only)
         Route::resource('account-management', AccountManagementController::class)
-            ->only(['index', 'store', 'update', 'destroy']);
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->middleware('throttle:60,1');
     });
 
     // Cashier accessible routes

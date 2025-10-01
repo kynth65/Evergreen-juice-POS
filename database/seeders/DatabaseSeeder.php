@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
+            SalesSeeder::class,
         ]);
 
         // Keep the original test user for backward compatibility

@@ -20,6 +20,13 @@ interface Product {
         name: string;
         color: string;
     };
+    sizes: Array<{
+        id: number;
+        name: string;
+        price: number;
+        is_default: boolean;
+        sort_order: number;
+    }>;
     is_low_stock: boolean;
     is_out_of_stock: boolean;
 }

@@ -42,6 +42,14 @@ interface Category {
     products?: Product[];
 }
 
+interface ProductSize {
+    id: number;
+    name: string;
+    price: number;
+    is_default: boolean;
+    sort_order: number;
+}
+
 interface Product {
     id: number;
     name: string;
@@ -51,11 +59,13 @@ interface Product {
     category: Category;
     is_active: boolean;
     track_inventory: boolean;
+    sizes: ProductSize[];
 }
 
 interface CartItem {
     product: Product;
     quantity: number;
+    selectedSize?: ProductSize;
 }
 
 interface Props {
@@ -72,8 +82,8 @@ function CartContent({
     getTotal,
 }: {
     cart: CartItem[];
-    updateQuantity: (productId: number, quantity: number) => void;
-    removeFromCart: (productId: number) => void;
+    updateQuantity: (index: number, quantity: number) => void;
+    removeFromCart: (index: number) => void;
     getSubtotal: () => number;
     getTotal: () => number;
 }) {
@@ -87,63 +97,70 @@ function CartContent({
                 </div>
             ) : (
                 <div className="space-y-2.5">
-                    {cart.map((item) => (
+                    {cart.map((item, index) => {
+                        const itemPrice = item.selectedSize ? item.selectedSize.price : item.product.price;
+                        return (
                         <div
-                            key={item.product.id}
-                            className="flex items-center justify-between rounded-lg border-2 bg-white p-3 transition-colors hover:bg-gray-50"
+                            key={`${item.product.id}-${item.selectedSize?.id || 'no-size'}-${index}`}
+                            className="flex flex-col gap-2 rounded-lg border-2 bg-white p-2.5 transition-colors hover:bg-gray-50 sm:flex-row sm:items-center sm:gap-0 sm:p-3"
                         >
                             <div className="min-w-0 flex-1">
                                 <p className="truncate text-sm font-semibold">
                                     {item.product.name}
+                                    {item.selectedSize && (
+                                        <span className="ml-1 text-xs font-normal text-gray-500">
+                                            ({item.selectedSize.name})
+                                        </span>
+                                    )}
                                 </p>
                                 <p className="text-xs text-gray-600">
-                                    ₱{Number(item.product.price).toFixed(2)} each
+                                    ₱{Number(itemPrice).toFixed(2)} each
                                 </p>
                             </div>
 
-                            <div className="ml-3 flex flex-shrink-0 items-center gap-1.5">
+                            <div className="flex flex-shrink-0 items-center gap-1.5 sm:ml-3">
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-8 w-8 p-0 transition-transform active:scale-90"
+                                    className="h-7 w-7 p-0 transition-transform active:scale-90 sm:h-8 sm:w-8"
                                     onClick={() =>
                                         updateQuantity(
-                                            item.product.id,
+                                            index,
                                             item.quantity - 1,
                                         )
                                     }
                                 >
-                                    <MinusIcon className="h-3.5 w-3.5" />
+                                    <MinusIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                                 </Button>
-                                <span className="w-8 text-center text-sm font-bold">
+                                <span className="w-7 text-center text-sm font-bold sm:w-8">
                                     {item.quantity}
                                 </span>
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-8 w-8 p-0 transition-transform active:scale-90"
+                                    className="h-7 w-7 p-0 transition-transform active:scale-90 sm:h-8 sm:w-8"
                                     onClick={() =>
                                         updateQuantity(
-                                            item.product.id,
+                                            index,
                                             item.quantity + 1,
                                         )
                                     }
                                 >
-                                    <PlusIcon className="h-3.5 w-3.5" />
+                                    <PlusIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                                 </Button>
                                 <Button
                                     size="sm"
                                     variant="destructive"
-                                    className="h-8 w-8 p-0 transition-transform active:scale-90"
+                                    className="h-7 w-7 p-0 transition-transform active:scale-90 sm:h-8 sm:w-8"
                                     onClick={() =>
-                                        removeFromCart(item.product.id)
+                                        removeFromCart(index)
                                     }
                                 >
-                                    <XIcon className="h-3.5 w-3.5" />
+                                    <XIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                                 </Button>
                             </div>
                         </div>
-                    ))}
+                    );})}
                 </div>
             )}
 
@@ -307,6 +324,9 @@ export default function PosIndex({ categories, products }: Props) {
     const [confirmationProduct, setConfirmationProduct] =
         useState<Product | null>(null);
     const confirmationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [sizeSelectionProduct, setSizeSelectionProduct] = useState<Product | null>(null);
+    const [selectedSizeForProduct, setSelectedSizeForProduct] = useState<ProductSize | null>(null);
+    const [sizeSelectionQuantity, setSizeSelectionQuantity] = useState<number>(1);
 
     const filteredProducts = selectedCategory
         ? products.filter((product) => product.category.id === selectedCategory)
@@ -321,21 +341,31 @@ export default function PosIndex({ categories, products }: Props) {
         };
     }, []);
 
-    const addToCart = (product: Product) => {
+    const addToCart = (product: Product, size?: ProductSize, quantity: number = 1) => {
+        // If product has sizes and no size is selected, show size selection dialog
+        if (product.sizes && product.sizes.length > 0 && !size) {
+            setSizeSelectionProduct(product);
+            // Set default size if available
+            const defaultSize = product.sizes.find(s => s.is_default) || product.sizes[0];
+            setSelectedSizeForProduct(defaultSize);
+            setSizeSelectionQuantity(1);
+            return;
+        }
+
         const existingItem = cart.find(
-            (item) => item.product.id === product.id,
+            (item) => item.product.id === product.id && item.selectedSize?.id === size?.id,
         );
 
         if (existingItem) {
             setCart(
                 cart.map((item) =>
-                    item.product.id === product.id
-                        ? { ...item, quantity: item.quantity + 1 }
+                    item.product.id === product.id && item.selectedSize?.id === size?.id
+                        ? { ...item, quantity: item.quantity + quantity }
                         : item,
                 ),
             );
         } else {
-            setCart([...cart, { product, quantity: 1 }]);
+            setCart([...cart, { product, quantity, selectedSize: size }]);
         }
 
         // Show confirmation toast
@@ -353,26 +383,38 @@ export default function PosIndex({ categories, products }: Props) {
         }, 3000);
     };
 
-    const updateQuantity = (productId: number, quantity: number) => {
+    const confirmSizeSelection = () => {
+        if (sizeSelectionProduct && selectedSizeForProduct) {
+            addToCart(sizeSelectionProduct, selectedSizeForProduct, sizeSelectionQuantity);
+            setSizeSelectionProduct(null);
+            setSelectedSizeForProduct(null);
+            setSizeSelectionQuantity(1);
+        }
+    };
+
+    const updateQuantity = (index: number, quantity: number) => {
         if (quantity <= 0) {
-            removeFromCart(productId);
+            removeFromCart(index);
             return;
         }
 
         setCart(
-            cart.map((item) =>
-                item.product.id === productId ? { ...item, quantity } : item,
+            cart.map((item, i) =>
+                i === index ? { ...item, quantity } : item,
             ),
         );
     };
 
-    const removeFromCart = (productId: number) => {
-        setCart(cart.filter((item) => item.product.id !== productId));
+    const removeFromCart = (index: number) => {
+        setCart(cart.filter((_, i) => i !== index));
     };
 
     const getSubtotal = () => {
         return cart.reduce(
-            (total, item) => total + Number(item.product.price) * item.quantity,
+            (total, item) => {
+                const itemPrice = item.selectedSize ? item.selectedSize.price : item.product.price;
+                return total + Number(itemPrice) * item.quantity;
+            },
             0,
         );
     };
@@ -398,6 +440,7 @@ export default function PosIndex({ categories, products }: Props) {
     const handleCheckout = () => {
         const orderItems = cart.map((item) => ({
             product_id: item.product.id,
+            product_size_id: item.selectedSize?.id || null,
             quantity: item.quantity,
         }));
 
@@ -580,63 +623,75 @@ export default function PosIndex({ categories, products }: Props) {
                                             </div>
                                         ) : (
                                             <div className="space-y-2.5">
-                                                {cart.map((item) => (
+                                                {cart.map((item, index) => {
+                                                    const itemPrice = item.selectedSize ? item.selectedSize.price : item.product.price;
+                                                    return (
                                                     <div
-                                                        key={item.product.id}
-                                                        className="flex items-center justify-between rounded-lg border-2 bg-white p-3 transition-colors hover:bg-gray-50"
+                                                        key={`${item.product.id}-${item.selectedSize?.id || 'no-size'}-${index}`}
+                                                        className="flex flex-col gap-2 rounded-lg border-2 bg-white p-2.5 transition-colors hover:bg-gray-50"
                                                     >
                                                         <div className="min-w-0 flex-1">
                                                             <p className="truncate text-sm font-semibold">
                                                                 {item.product.name}
+                                                                {item.selectedSize && (
+                                                                    <span className="ml-1 text-xs font-normal text-gray-500">
+                                                                        ({item.selectedSize.name})
+                                                                    </span>
+                                                                )}
                                                             </p>
                                                             <p className="text-xs text-gray-600">
-                                                                ₱{Number(item.product.price).toFixed(2)} each
+                                                                ₱{Number(itemPrice).toFixed(2)} each
                                                             </p>
                                                         </div>
 
-                                                        <div className="ml-3 flex flex-shrink-0 items-center gap-1.5">
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="h-8 w-8 p-0 transition-transform active:scale-90"
-                                                                onClick={() =>
-                                                                    updateQuantity(
-                                                                        item.product.id,
-                                                                        item.quantity - 1,
-                                                                    )
-                                                                }
-                                                            >
-                                                                <MinusIcon className="h-3.5 w-3.5" />
-                                                            </Button>
-                                                            <span className="w-8 text-center text-sm font-bold">
-                                                                {item.quantity}
+                                                        <div className="flex flex-shrink-0 items-center justify-between gap-1.5">
+                                                            <span className="text-sm font-bold text-gray-700">
+                                                                Total: ₱{(Number(itemPrice) * item.quantity).toFixed(2)}
                                                             </span>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="h-8 w-8 p-0 transition-transform active:scale-90"
-                                                                onClick={() =>
-                                                                    updateQuantity(
-                                                                        item.product.id,
-                                                                        item.quantity + 1,
-                                                                    )
-                                                                }
-                                                            >
-                                                                <PlusIcon className="h-3.5 w-3.5" />
-                                                            </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="destructive"
-                                                                className="h-8 w-8 p-0 transition-transform active:scale-90"
-                                                                onClick={() =>
-                                                                    removeFromCart(item.product.id)
-                                                                }
-                                                            >
-                                                                <XIcon className="h-3.5 w-3.5" />
-                                                            </Button>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    className="h-7 w-7 p-0 transition-transform active:scale-90"
+                                                                    onClick={() =>
+                                                                        updateQuantity(
+                                                                            index,
+                                                                            item.quantity - 1,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <MinusIcon className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                                <span className="w-7 text-center text-sm font-bold">
+                                                                    {item.quantity}
+                                                                </span>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    className="h-7 w-7 p-0 transition-transform active:scale-90"
+                                                                    onClick={() =>
+                                                                        updateQuantity(
+                                                                            index,
+                                                                            item.quantity + 1,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <PlusIcon className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="destructive"
+                                                                    className="h-7 w-7 p-0 transition-transform active:scale-90"
+                                                                    onClick={() =>
+                                                                        removeFromCart(index)
+                                                                    }
+                                                                >
+                                                                    <XIcon className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                ))}
+                                                );})}
                                             </div>
                                         )}
                                     </ScrollArea>
@@ -882,19 +937,26 @@ export default function PosIndex({ categories, products }: Props) {
                                             Items ({cart.length})
                                         </h3>
                                         <div className="space-y-2">
-                                            {cart.map((item) => (
+                                            {cart.map((item, index) => {
+                                                const itemPrice = item.selectedSize ? item.selectedSize.price : item.product.price;
+                                                return (
                                                 <div
-                                                    key={item.product.id}
+                                                    key={`${item.product.id}-${item.selectedSize?.id || 'no-size'}-${index}`}
                                                     className="flex items-center justify-between rounded-lg border-2 bg-gray-50 p-2.5 transition-colors hover:bg-gray-100 sm:p-3"
                                                 >
                                                     <div className="min-w-0 flex-1 pr-2 sm:pr-3">
                                                         <p className="truncate text-sm font-medium sm:text-base">
                                                             {item.product.name}
+                                                            {item.selectedSize && (
+                                                                <span className="ml-1 text-xs font-normal text-gray-500">
+                                                                    ({item.selectedSize.name})
+                                                                </span>
+                                                            )}
                                                         </p>
                                                         <p className="text-xs text-gray-600 sm:text-sm">
                                                             ₱
                                                             {Number(
-                                                                item.product.price,
+                                                                itemPrice,
                                                             ).toFixed(2)}{' '}
                                                             × {item.quantity}
                                                         </p>
@@ -904,14 +966,13 @@ export default function PosIndex({ categories, products }: Props) {
                                                             ₱
                                                             {(
                                                                 Number(
-                                                                    item.product
-                                                                        .price,
+                                                                    itemPrice,
                                                                 ) * item.quantity
                                                             ).toFixed(2)}
                                                         </p>
                                                     </div>
                                                 </div>
-                                            ))}
+                                            );})}
                                         </div>
                                     </div>
 
@@ -1045,6 +1106,69 @@ export default function PosIndex({ categories, products }: Props) {
                         </div>
                     </div>
                 )}
+
+                {/* Size Selection Dialog */}
+                <Sheet open={!!sizeSelectionProduct} onOpenChange={(open) => !open && setSizeSelectionProduct(null)}>
+                    <SheetContent className="px-6">
+                        <SheetHeader>
+                            <SheetTitle>Select Size</SheetTitle>
+                        </SheetHeader>
+                        {sizeSelectionProduct && (
+                            <div className="mt-6 space-y-6">
+                                <div>
+                                    <p className="font-semibold text-lg">{sizeSelectionProduct.name}</p>
+                                    <p className="text-sm text-gray-500">{sizeSelectionProduct.description}</p>
+                                </div>
+                                <div className="space-y-3">
+                                    <Label className="text-base font-semibold">Choose a size:</Label>
+                                    {sizeSelectionProduct.sizes.map((size) => (
+                                        <Button
+                                            key={size.id}
+                                            variant={selectedSizeForProduct?.id === size.id ? "default" : "outline"}
+                                            className="w-full justify-between h-16 px-5"
+                                            onClick={() => setSelectedSizeForProduct(size)}
+                                        >
+                                            <span className="font-semibold text-base">{size.name}</span>
+                                            <span className="text-lg font-bold">₱{Number(size.price).toFixed(2)}</span>
+                                        </Button>
+                                    ))}
+                                </div>
+                                <div className="space-y-3">
+                                    <Label className="text-base font-semibold">Quantity:</Label>
+                                    <div className="flex items-center justify-center gap-4 rounded-lg border-2 bg-gray-50 p-4">
+                                        <Button
+                                            variant="outline"
+                                            size="lg"
+                                            className="h-12 w-12 p-0"
+                                            onClick={() => setSizeSelectionQuantity(Math.max(1, sizeSelectionQuantity - 1))}
+                                            disabled={sizeSelectionQuantity <= 1}
+                                        >
+                                            <MinusIcon className="h-5 w-5" />
+                                        </Button>
+                                        <span className="min-w-[3rem] text-center text-2xl font-bold">
+                                            {sizeSelectionQuantity}
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="lg"
+                                            className="h-12 w-12 p-0"
+                                            onClick={() => setSizeSelectionQuantity(sizeSelectionQuantity + 1)}
+                                        >
+                                            <PlusIcon className="h-5 w-5" />
+                                        </Button>
+                                    </div>
+                                </div>
+                                <Button
+                                    className="w-full h-14 text-base font-bold"
+                                    onClick={confirmSizeSelection}
+                                    disabled={!selectedSizeForProduct}
+                                >
+                                    Add to Cart
+                                </Button>
+                            </div>
+                        )}
+                    </SheetContent>
+                </Sheet>
             </div>
         </>
     );
